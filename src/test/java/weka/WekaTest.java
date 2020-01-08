@@ -8,7 +8,9 @@ import weka.classifiers.trees.J48;
 import weka.core.*;
 import weka.core.converters.ConverterUtils;
 import weka.gui.CostMatrixEditor;
+import weka.gui.GenericObjectEditor;
 import weka.gui.explorer.ClassifierErrorsPlotInstances;
+import weka.gui.explorer.ExplorerDefaults;
 
 import javax.swing.*;
 import java.text.SimpleDateFormat;
@@ -46,12 +48,12 @@ public class WekaTest {
     boolean costMatrixEditor = false;//是否选择成本矩阵
     protected CostMatrixEditor costMatrixEditorValue = new CostMatrixEditor();//成本矩阵值
     CostMatrix costMatrix = null;//成本矩阵
-    ClassifierErrorsPlotInstances plotInstances = null;
+    ClassifierErrorsPlotInstances plotInstances = ExplorerDefaults.getClassifierErrorsPlotInstances();;//错误可视化视图
     boolean collectPredictionsForEvaluation = true;
     AbstractOutput classificationOutput = null;
     Instances userTestStructure = null;
     boolean m_PreserveOrderBut = true;
-    boolean outputPredictionsText = true;
+    boolean outputPredictionsText = false;
     boolean outputSummary = true;
     boolean outputEntropy = true;
     boolean outputPerClass = true;
@@ -60,11 +62,10 @@ public class WekaTest {
     boolean m_OutputSourceCode = true;
     String randomSeedText = "1";//随机种子进行交叉验证或％拆分
     protected JTextField m_SourceCodeClass = new JTextField("WekaClassifier", 10);
-    /**
-     * The user's list of selected evaluation metrics
-     */
     protected List<String> m_selectedEvalMetrics = Evaluation
-            .getAllEvaluationMetricNames();
+            .getAllEvaluationMetricNames();//用户选择评估指标列表
+    protected GenericObjectEditor m_ClassificationOutputEditor =
+            new GenericObjectEditor(true);
     Classifier template = null;
     boolean outputModelsForTrainingSplits = true;
     int classIndex = 1;
@@ -80,26 +81,32 @@ public class WekaTest {
     }
 
     public void algorithProcessPrintln() throws Exception {
+
+        template = AbstractClassifier.makeCopy(classifier);
+
         runInformation();//输出Run information
 
         classifierModel();//输出Classifier model
 
         summary();//输出summary
 
-//        eval = new Evaluation(inst);
-//        if (crossValidation) {
-//            eval.crossValidateModel(classifier, inst, crossValidationText, new Random(1));
-//        }
-//
-//        outBuff.append(eval.toSummaryString("=== Stratified cross-validation ===\n=== Summary
-// ===\n", false));
-//        outBuff.append("\n"+eval.toClassDetailsString());
-//        System.out.println(outBuff);
+        classDetailedAccuracy();//输出Detailed Accuracy By Class
 
+        confusionMatrix();//输出Confusion Matrix
+    }
+
+
+    private void confusionMatrix() {
+    }
+
+
+    private void classDetailedAccuracy() {
     }
 
     private void summary() throws Exception {
+        //成本矩阵@todo 成本矩阵修改
         if (costMatrixEditor) {
+            costMatrixEditorValue.setValue(new CostMatrix(1));//设置成本矩阵值
             costMatrix =
                     new CostMatrix((CostMatrix) costMatrixEditorValue.getValue());
         }
@@ -157,6 +164,7 @@ public class WekaTest {
             outBuff.append(Evaluation.wekaStaticWrapper(
                     ((Sourcable) fullClassifier), m_SourceCodeClass.getText()));
         }
+        System.out.println(outBuff);
     }
 
     private void testOnUserSplitMode() throws Exception {
@@ -394,9 +402,9 @@ public class WekaTest {
         // plotInstances.setEvaluation(eval);
         plotInstances.setUp();
 
-        if (outputPredictionsText) {
-            printPredictionsHeader(outBuff, classificationOutput, "test data");
-        }
+//        if (outputPredictionsText) {
+//            printPredictionsHeader(outBuff, classificationOutput, "test data");
+//        }
 
         // Make some splits and do a CV
         for (int fold = 0; fold < crossValidationText; fold++) {
@@ -595,6 +603,7 @@ public class WekaTest {
                 setPlotInstances(eval, classifier, inst, plotInstances, onlySetPriors);
             }
         } else {
+            //设置先验概率
             eval.setPriors(inst);
             setPlotInstances(eval, classifier, inst, plotInstances, onlySetPriors);
         }
@@ -625,12 +634,12 @@ public class WekaTest {
             classifier.buildClassifier(inst);
             trainTimeElapsed = System.currentTimeMillis() - trainTimeStart;
         }
-        outBuff
-                .append("=== Classifier model (full training set) ===\n\n");
+        outBuff.append("=== Classifier model (full training set) ===\n\n");
         outBuff.append(classifier.toString() + "\n");
         outBuff.append("\nTime taken to build model: "
                 + Utils.doubleToString(trainTimeElapsed / 1000.0, 2)
                 + " seconds\n\n");
+        //生成图像@TODO 有无办法获得
         if (classifier instanceof Drawable) {
             grph = null;
             try {
@@ -657,7 +666,7 @@ public class WekaTest {
 
     public void algorithmSelection() throws Exception {
         classifier = new J48();
-        String[] options = {"-M", "5", "-R"};
+        String[] options = {"-C", "0.25", "-M","2"};
         classifier.setOptions(options);
     }
 
