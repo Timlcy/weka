@@ -67,7 +67,7 @@ public class WekaTest {
     protected GenericObjectEditor m_ClassificationOutputEditor =
             new GenericObjectEditor(true);
     Classifier template = null;
-    boolean outputModelsForTrainingSplits = true;
+    boolean outputModelsForTrainingSplits = false;
     int classIndex = 1;
 
     public void wekaStart() throws Exception {
