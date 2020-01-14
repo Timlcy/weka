@@ -7,6 +7,9 @@ import weka.classifiers.rules.ZeroR;
 import weka.classifiers.trees.J48;
 import weka.core.*;
 import weka.core.converters.ConverterUtils;
+import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.Add;
+import weka.filters.unsupervised.attribute.AddID;
 import weka.gui.CostMatrixEditor;
 import weka.gui.GenericObjectEditor;
 import weka.gui.explorer.ClassifierErrorsPlotInstances;
@@ -67,17 +70,28 @@ public class WekaTest {
     protected GenericObjectEditor m_ClassificationOutputEditor =
             new GenericObjectEditor(true);
     Classifier template = null;
-    boolean outputModelsForTrainingSplits = true;
+    boolean outputModelsForTrainingSplits = false;
     int classIndex = 1;
 
     public void wekaStart() throws Exception {
 
         setData();//初始化数据集
 
+        filterData();//过滤数据集
+
         algorithmSelection();//算法选择
 
         algorithProcessPrintln();//模型输出
 
+    }
+
+    private void filterData() throws Exception {
+        Filter filter = new AddID();
+        String[] options = new String[]{"-C","first","-N","ID"};
+        filter.setOptions(options);
+        filter.setInputFormat(inst);
+        Instances newInstances = Filter.useFilter(inst, filter);
+        System.out.println(newInstances.toSummaryString());
     }
 
     public void algorithProcessPrintln() throws Exception {
@@ -88,20 +102,10 @@ public class WekaTest {
 
         classifierModel();//输出Classifier model
 
-        summary();//输出summary
+        summary();//输出summary,Detailed Accuracy By Class和Confusion Matrix
 
-        classDetailedAccuracy();//输出Detailed Accuracy By Class
-
-        confusionMatrix();//输出Confusion Matrix
     }
 
-
-    private void confusionMatrix() {
-    }
-
-
-    private void classDetailedAccuracy() {
-    }
 
     private void summary() throws Exception {
         //成本矩阵@todo 成本矩阵修改
@@ -151,11 +155,11 @@ public class WekaTest {
         if (inst.attribute(classIndex).isNominal()) {
 
             if (outputPerClass) {
-                outBuff.append(eval.toClassDetailsString() + "\n");
+                outBuff.append(eval.toClassDetailsString() + "\n");//Detailed Accuracy By Class
             }
 
             if (outputConfusion) {
-                outBuff.append(eval.toMatrixString() + "\n");
+                outBuff.append(eval.toMatrixString() + "\n");//Confusion Matrix
             }
         }
         if ((fullClassifier instanceof Sourcable)
@@ -486,13 +490,13 @@ public class WekaTest {
         eval = new Evaluation(inst, costMatrix);
 
         // make adjustments if the classifier is an InputMappedClassifier
-        eval =
-                setupEval(eval, classifier, inst, costMatrix, plotInstances,
-                        classificationOutput, false, collectPredictionsForEvaluation);
+//        eval =
+//                setupEval(eval, classifier, inst, costMatrix, plotInstances,
+//                        classificationOutput, false, collectPredictionsForEvaluation);
         eval.setMetricsToDisplay(m_selectedEvalMetrics);
 
         // plotInstances.setEvaluation(eval);
-        plotInstances.setUp();
+//        plotInstances.setUp();
 
         if (outputPredictionsText) {
             printPredictionsHeader(outBuff, classificationOutput,
@@ -635,18 +639,18 @@ public class WekaTest {
             trainTimeElapsed = System.currentTimeMillis() - trainTimeStart;
         }
         outBuff.append("=== Classifier model (full training set) ===\n\n");
-        outBuff.append(classifier.toString() + "\n");
+        outBuff.append(classifier.toString() + "\n");//输出决策过程
         outBuff.append("\nTime taken to build model: "
                 + Utils.doubleToString(trainTimeElapsed / 1000.0, 2)
                 + " seconds\n\n");
         //生成图像@TODO 有无办法获得
-        if (classifier instanceof Drawable) {
-            grph = null;
-            try {
-                grph = ((Drawable) classifier).graph();
-            } catch (Exception ex) {
-            }
-        }
+//        if (classifier instanceof Drawable) {
+//            grph = null;
+//            try {
+//                grph = ((Drawable) classifier).graph();
+//            } catch (Exception ex) {
+//            }
+//        }
     }
 
     /**
