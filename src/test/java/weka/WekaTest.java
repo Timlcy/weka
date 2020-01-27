@@ -7,6 +7,7 @@ import weka.classifiers.rules.ZeroR;
 import weka.classifiers.trees.J48;
 import weka.core.*;
 import weka.core.converters.ConverterUtils;
+import weka.experiment.InstanceQuery;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Add;
 import weka.filters.unsupervised.attribute.AddID;
@@ -725,6 +726,8 @@ public class WekaTest {
                 ".nominal.arff";
         inst = ConverterUtils.DataSource.read(path);
         inst.setClassIndex(inst.numAttributes() - 1);
+
+
     }
 
     public static void main(String[] args) throws Exception {

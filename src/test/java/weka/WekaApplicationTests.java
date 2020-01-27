@@ -8,6 +8,7 @@ class WekaApplicationTests {
 
 	@Test
 	void contextLoads() {
+		System.out.println("1111");
 	}
 
 }
