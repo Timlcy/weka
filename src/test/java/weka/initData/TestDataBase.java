@@ -11,18 +11,19 @@ import weka.filterData.filterData;
  * @Date 2020/1/24
  * @Version 1.0
  **/
-public class mysql {
+public class TestDataBase {
 
+     Instances instances = null;
 
     @Test
-    public void setInstances() {
-        QueryInstances queryInstances = new QueryInstances();
-        queryInstances.setUsername("root");
-        queryInstances.setPassword("123456");
-        queryInstances.setDatabaseURL("jdbc:mysql://localhost:3306/weka?useUnicode=true" +
+    public void initData() {
+        TestQueryInstances testQueryInstances = new TestQueryInstances();
+        testQueryInstances.setUsername("root");
+        testQueryInstances.setPassword("123456");
+        testQueryInstances.setDatabaseURL("jdbc:mysql://localhost:3306/weka?useUnicode=true" +
                 "&characterEncoding=utf8&serverTimezone=UTC");
-        queryInstances.setQuery("select * from weather");
-        Instances instances = queryInstances.changeInstances();
+        testQueryInstances.setQuery("select * from weather");
+        instances = testQueryInstances.changeInstances();
         instances.setClassIndex(instances.numAttributes() - 1);
         try {
             filterData.filterData(instances);
@@ -30,6 +31,7 @@ public class mysql {
             e.printStackTrace();
         }
     }
+
 
 
 }

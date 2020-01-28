@@ -16,11 +16,10 @@ import java.util.Date;
  * @Date 2020/1/25
  * @Version 1.0
  **/
-public class QueryInstances {
+public class TestQueryInstances {
 
 
-    private static String PROPERTY_FILE = "C:\\Users\\timlcy\\Desktop\\公司\\外接工作\\wekaProject\\src" +
-            "\\test\\resources\\DatabaseUtils.props";
+    private static String PROPERTY_FILE = "DatabaseUtils.props";
 
     public String getUsername() {
         return username;
@@ -150,13 +149,14 @@ public class QueryInstances {
     //读取数据配置文件
     static Properties properties;
 
-    public QueryInstances() {
+    public TestQueryInstances() {
 
         properties = new Properties();
-        BufferedReader bufferedReader = null;
+//        BufferedReader bufferedReader = null;
+        InputStream property_file = ClassLoader.getSystemResourceAsStream("PROPERTY_FILE");
         try {
-            bufferedReader = new BufferedReader(new FileReader(PROPERTY_FILE));
-            properties.load(bufferedReader);
+//            bufferedReader = new BufferedReader(new FileReader(PROPERTY_FILE));
+            properties.load(property_file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
