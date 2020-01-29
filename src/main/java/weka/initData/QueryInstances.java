@@ -2,7 +2,9 @@ package weka.initData;
 
 import weka.core.*;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.*;
 import java.util.Date;
 import java.util.*;
@@ -146,6 +148,27 @@ public class QueryInstances {
     public static final int TIMESTAMP = 11;
     //读取数据配置文件
     static Properties properties;
+    Connection connection;
+
+    Vector<String> columnNames;
+
+    public Vector<String> getColumnNames() {
+        return columnNames;
+    }
+
+    public void setColumnNames(Vector<String> columnNames) {
+        this.columnNames = columnNames;
+    }
+
+    public List<Map<String, Object>> getQueryList() {
+        return queryList;
+    }
+
+    public void setQueryList(List<Map<String, Object>> queryList) {
+        this.queryList = queryList;
+    }
+
+    List<Map<String, Object>> queryList;
 
     public QueryInstances() {
 
@@ -163,7 +186,7 @@ public class QueryInstances {
 
     }
 
-    public static Instances retrieveInstances(
+    public Instances retrieveInstances(
             ResultSet rs) throws Exception {
         ResultSetMetaData md = rs.getMetaData();
 
@@ -237,11 +260,25 @@ public class QueryInstances {
                     attributeTypes[i - 1] = Attribute.STRING;
             }
         }
+        queryList = new ArrayList<>();
         //获得表字段名
-        Vector<String> columnNames = new Vector<String>();
+        columnNames = new Vector<String>();
         for (int i = 0; i < numAttributes; i++) {
-            columnNames.add(md.getColumnLabel(i + 1));
+            String columnLabel = md.getColumnLabel(i + 1);
+            columnNames.add(columnLabel);
         }
+
+
+        while (rs.next()) {
+            Map<String, Object> map = new HashMap<>();
+            for (int i = 0; i < numAttributes; i++) {
+                String columnLabel = md.getColumnLabel(i + 1);
+                String columnValue = rs.getObject(i + 1).toString();
+                map.put(columnLabel, columnValue);
+            }
+            queryList.add(map);
+        }
+
 
         ArrayList<Instance> instances = new ArrayList<Instance>();
         int rowCount = 0;
@@ -272,9 +309,6 @@ public class QueryInstances {
                         } else {
                             Double index = nominalIndexes[i - 1].get(txt);
                             if (index == null) {
-
-                                // Need to add one because first value in
-                                // string attribute is dummy value.
                                 index = new Double(nominalStrings[i - 1].size()) + 1;
                                 nominalIndexes[i - 1].put(txt, index);
                                 nominalStrings[i - 1].add(txt);
@@ -346,7 +380,6 @@ public class QueryInstances {
                         if (rs.wasNull()) {
                             vals[i - 1] = Utils.missingValue();
                         } else {
-                            // TODO: Do a value check here.
                             vals[i - 1] = date.getTime();
                         }
                         break;
@@ -355,7 +388,6 @@ public class QueryInstances {
                         if (rs.wasNull()) {
                             vals[i - 1] = Utils.missingValue();
                         } else {
-                            // TODO: Do a value check here.
                             vals[i - 1] = time.getTime();
                         }
                         break;
@@ -477,9 +509,9 @@ public class QueryInstances {
 
     public Instances changeInstances() {
         try {
-//            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection(getDatabaseURL(), getUsername(),
-                    getPassword());
+            if (connection == null) {
+                connectionDataBase();
+            }
             PreparedStatement preparedStatement = connection.prepareStatement(getQuery(),
                     ResultSet.TYPE_FORWARD_ONLY,
                     ResultSet.CONCUR_READ_ONLY);
@@ -492,5 +524,21 @@ public class QueryInstances {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * 测试是否连接数据库
+     *
+     * @return
+     */
+    public boolean connectionDataBase() {
+        try {
+            connection = DriverManager.getConnection(getDatabaseURL(), getUsername(),
+                    getPassword());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

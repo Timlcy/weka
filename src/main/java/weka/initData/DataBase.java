@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import weka.core.Instances;
 
+import java.util.*;
+
 /**
  * @ClassName mysql
  * @Description 插入mysql
@@ -22,9 +24,17 @@ import weka.core.Instances;
 @Api(value = "数据源接口Controller")
 public class DataBase {
 
-    static Instances instances;
+    public static Instances instances;
 
-    static QueryInstances queryInstances;
+    public static QueryInstances queryInstances;
+
+    public static Instances getInstances() {
+        return instances;
+    }
+
+    public static void setInstances(Instances instances) {
+        DataBase.instances = instances;
+    }
 
     @ApiOperation(value = "数据源接口")
     @ApiImplicitParams({
@@ -55,9 +65,9 @@ public class DataBase {
 
     @ApiOperation(value = "测试数据源连接接口")
     @PostMapping("testDataBase")
-    public void testDataBase(
+    public boolean testDataBase(
     ) {
-//        queryInstances.test();
+        return queryInstances.connectionDataBase();
     }
 
     @ApiOperation(value = "查询转换")
@@ -67,12 +77,17 @@ public class DataBase {
             )
     })
     @PostMapping("querySQL")
-    public boolean querySQL(@RequestParam(value = "querySQL", required = true) String querySQL
+    public Map querySQL(@RequestParam(value = "querySQL", required = true) String querySQL
     ) {
         queryInstances.setQuery(querySQL);
         instances = queryInstances.changeInstances();
         instances.setClassIndex(instances.numAttributes() - 1);
-        return true;
+        List<Map<String, Object>> queryList = queryInstances.getQueryList();
+        Vector<String> columnNames = queryInstances.getColumnNames();
+        Map<String, Object> map = new HashMap<>();
+        map.put("columnNames", columnNames);
+        map.put("queryValue", queryList);
+        return map;
     }
 
 
