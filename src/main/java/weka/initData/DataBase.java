@@ -8,8 +8,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import weka.core.Instances;
+import weka.core.converters.ConverterUtils;
+import weka.core.converters.DatabaseLoader;
+import weka.experiment.InstanceQuery;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 
 /**
@@ -22,45 +28,52 @@ import java.util.*;
 @RestController
 @RequestMapping(value = "/dataBase")
 @Api(value = "数据源接口Controller")
-public class DataBase {
-
-    public static Instances instances;
+public class DataBase extends GeneralData {
 
     public static QueryInstances queryInstances;
 
-    public static Instances getInstances() {
-        return instances;
-    }
+    public static List<Map> dataBaseHistory;
 
-    public static void setInstances(Instances instances) {
-        DataBase.instances = instances;
-    }
+    public static List<String> sqlHistory;
 
     @ApiOperation(value = "数据源接口")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "username", value = "用户名", required =
-                    true, paramType = "query", dataType = "String"
+                    true, paramType = "query", dataType = "String", defaultValue =
+                    "root"
             ),
             @ApiImplicitParam(name = "password", value = "密码", required = true, paramType =
-                    "query", dataType = "String"
+                    "query", dataType = "String", defaultValue =
+                    "123456"
             ),
             @ApiImplicitParam(name = "databaseURL", value = "数据库连接URL", required = true, paramType =
-                    "query", dataType = "String"
+                    "query", dataType = "String", defaultValue =
+                    "jdbc:mysql://localhost:3306/weka?useUnicode=true" +
+                            "&characterEncoding=utf8&serverTimezone=UTC"
             )
     })
     @PostMapping("initData")
-    public void initData(@RequestParam(value = "username", required = true, defaultValue =
-            "root") String username,
-                         @RequestParam(value = "password", required = true, defaultValue =
-                                 "123456") String password,
-                         @RequestParam(value = "databaseURL", required = true, defaultValue =
-                                 "jdbc:mysql://localhost:3306/weka?useUnicode=true" +
-                                         "&characterEncoding=utf8&serverTimezone=UTC") String databaseURL
+    public void initData(@RequestParam(value = "username", required = true) String username,
+                         @RequestParam(value = "password", required = true) String password,
+                         @RequestParam(value = "databaseURL", required = true) String databaseURL
     ) {
         queryInstances = new QueryInstances();
         queryInstances.setUsername(username);
         queryInstances.setPassword(password);
         queryInstances.setDatabaseURL(databaseURL);
+
+        Map<String, Object> dataBaseMap = new HashMap<>();
+        dataBaseMap.put("username", username);
+        dataBaseMap.put("password", password);
+        dataBaseMap.put("databaseURL", databaseURL);
+        if (dataBaseHistory == null) {
+            dataBaseHistory = new ArrayList<>();
+        }
+        if (!dataBaseHistory.contains(dataBaseMap)) {
+            dataBaseHistory.add(dataBaseMap);
+        }
+
+
     }
 
     @ApiOperation(value = "测试数据源连接接口")
@@ -79,9 +92,17 @@ public class DataBase {
     @PostMapping("querySQL")
     public Map querySQL(@RequestParam(value = "querySQL", required = true) String querySQL
     ) {
+
         queryInstances.setQuery(querySQL);
-        instances = queryInstances.changeInstances();
-        instances.setClassIndex(instances.numAttributes() - 1);
+        if (sqlHistory == null) {
+            sqlHistory = new ArrayList<>();
+        }
+        if (!sqlHistory.contains(querySQL)) {
+            sqlHistory.add(querySQL);
+        }
+        Instances instances = queryInstances.changeInstances();
+        instances.setClassIndex(instances.numAttributes()-1);
+        GeneralData.setInstances(instances);
         List<Map<String, Object>> queryList = queryInstances.getQueryList();
         Vector<String> columnNames = queryInstances.getColumnNames();
         Map<String, Object> map = new HashMap<>();
@@ -90,5 +111,20 @@ public class DataBase {
         return map;
     }
 
+
+    @ApiOperation(value = "查询数据库历史")
+    @PostMapping("queryDataBaseHistory")
+    public List queryDataBaseHistory(
+    ) {
+        return dataBaseHistory;
+    }
+
+
+    @ApiOperation(value = "查询SQL历史")
+    @PostMapping("querySqlHistory")
+    public List querySqlHistory(
+    ) {
+        return sqlHistory;
+    }
 
 }

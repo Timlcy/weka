@@ -9,6 +9,7 @@ import weka.core.*;
 import weka.core.converters.ConverterUtils;
 import weka.experiment.InstanceQuery;
 import weka.filters.Filter;
+import weka.filters.supervised.attribute.AddClassification;
 import weka.filters.unsupervised.attribute.Add;
 import weka.filters.unsupervised.attribute.AddID;
 import weka.gui.CostMatrixEditor;
@@ -19,6 +20,7 @@ import weka.gui.explorer.ExplorerDefaults;
 import javax.swing.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Random;
 
@@ -87,10 +89,11 @@ public class WekaTest {
     }
 
     private void filterData() throws Exception {
-        Filter filter = new AddID();
-        String[] options = new String[]{"-C","first","-N","ID"};
+        Filter filter = new AddClassification();
+        String[] options = new String[]{"-W","weka.classifiers.rules.ZeroR"};
         filter.setOptions(options);
         filter.setInputFormat(inst);
+
         Instances newInstances = Filter.useFilter(inst, filter);
         System.out.println(newInstances.toSummaryString());
     }

@@ -268,7 +268,6 @@ public class QueryInstances {
             columnNames.add(columnLabel);
         }
 
-
         while (rs.next()) {
             Map<String, Object> map = new HashMap<>();
             for (int i = 0; i < numAttributes; i++) {
@@ -278,8 +277,7 @@ public class QueryInstances {
             }
             queryList.add(map);
         }
-
-
+        rs.beforeFirst();
         ArrayList<Instance> instances = new ArrayList<Instance>();
         int rowCount = 0;
         while (rs.next()) {
@@ -513,7 +511,7 @@ public class QueryInstances {
                 connectionDataBase();
             }
             PreparedStatement preparedStatement = connection.prepareStatement(getQuery(),
-                    ResultSet.TYPE_FORWARD_ONLY,
+                    ResultSet.TYPE_SCROLL_INSENSITIVE,
                     ResultSet.CONCUR_READ_ONLY);
             preparedStatement.execute();
             ResultSet rs = preparedStatement.getResultSet();

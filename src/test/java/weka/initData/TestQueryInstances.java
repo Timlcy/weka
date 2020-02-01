@@ -153,7 +153,7 @@ public class TestQueryInstances {
 
         properties = new Properties();
 //        BufferedReader bufferedReader = null;
-        InputStream property_file = ClassLoader.getSystemResourceAsStream("PROPERTY_FILE");
+        InputStream property_file = ClassLoader.getSystemResourceAsStream(PROPERTY_FILE);
         try {
 //            bufferedReader = new BufferedReader(new FileReader(PROPERTY_FILE));
             properties.load(property_file);

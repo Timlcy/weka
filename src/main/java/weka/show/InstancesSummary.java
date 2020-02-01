@@ -1,6 +1,7 @@
 package weka.show;
 
 import weka.initData.DataBase;
+import weka.initData.GeneralData;
 
 /**
  * @ClassName InstancesSummary
@@ -12,6 +13,6 @@ import weka.initData.DataBase;
 public class InstancesSummary {
 
     public static String GeneratesInstancesSummary() {
-        return DataBase.instances.toSummaryString();
+        return GeneralData.getInstances().toSummaryString();
     }
 }
