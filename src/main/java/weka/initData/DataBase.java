@@ -30,11 +30,11 @@ import java.util.*;
 @Api(value = "数据源接口Controller")
 public class DataBase extends GeneralData {
 
-    public static QueryInstances queryInstances;
+    static QueryInstances queryInstances;
 
-    public static List<Map> dataBaseHistory;
+    static List<Map> dataBaseHistory;
 
-    public static List<String> sqlHistory;
+    static List<String> sqlHistory;
 
     @ApiOperation(value = "数据源接口")
     @ApiImplicitParams({
@@ -86,7 +86,7 @@ public class DataBase extends GeneralData {
     @ApiOperation(value = "查询转换")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "querySQL", value = "查询SQL", required =
-                    true, paramType = "query", dataType = "String"
+                    true, paramType = "query", dataType = "String",defaultValue = "select * from weather"
             )
     })
     @PostMapping("querySQL")
@@ -101,7 +101,7 @@ public class DataBase extends GeneralData {
             sqlHistory.add(querySQL);
         }
         Instances instances = queryInstances.changeInstances();
-        instances.setClassIndex(instances.numAttributes()-1);
+        instances.setClassIndex(instances.numAttributes() - 1);
         GeneralData.setInstances(instances);
         List<Map<String, Object>> queryList = queryInstances.getQueryList();
         Vector<String> columnNames = queryInstances.getColumnNames();

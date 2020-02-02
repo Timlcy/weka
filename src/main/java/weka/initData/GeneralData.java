@@ -1,6 +1,7 @@
 package weka.initData;
 
 import weka.core.Instances;
+import weka.core.converters.ConverterUtils;
 
 /**
  * @ClassName GeneralData
@@ -12,6 +13,16 @@ import weka.core.Instances;
 public class GeneralData {
 
     public static Instances instances;
+
+    public static ConverterUtils.DataSource source;
+
+    public static ConverterUtils.DataSource getSource() {
+        return source;
+    }
+
+    public static void setSource(ConverterUtils.DataSource source) {
+        GeneralData.source = source;
+    }
 
     public static Instances getInstances() {
         return instances;

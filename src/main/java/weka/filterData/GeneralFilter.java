@@ -54,14 +54,6 @@ public class GeneralFilter {
         Instances inst = GeneralData.getInstances();
         Filter filter = getFilter(filterName);
         changeInstances(options, inst, filter);
-
-//        AddClassification addClassification = new AddClassification();
-//        addClassification.setOptions(options);
-//        addClassification.setInputFormat(inst);
-//        Instances newInstances = Filter.useFilter(inst, addClassification);
-//        GeneralData.setInstances(newInstances);
-
-
     }
 
     public static Filter getFilter(String filterName) {

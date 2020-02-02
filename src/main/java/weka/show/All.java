@@ -23,6 +23,9 @@ public class All {
     @ApiOperation(value = "输出全部数据接口")
     @PostMapping("showAll")
     public String showAll() {
-        return InstancesSummary.GeneratesInstancesSummary();
+        String instancesSummary = InstancesSummary.GeneratesInstancesSummary();
+        String runInformation = RunInformation.GeneratesRunInformation();
+        String classifierModel = ClassifierModel.GeneratesClassifierModel();
+        return instancesSummary + runInformation + classifierModel;
     }
 }
