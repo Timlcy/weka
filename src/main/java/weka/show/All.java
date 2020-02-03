@@ -26,6 +26,7 @@ public class All {
         String instancesSummary = InstancesSummary.GeneratesInstancesSummary();
         String runInformation = RunInformation.GeneratesRunInformation();
         String classifierModel = ClassifierModel.GeneratesClassifierModel();
-        return instancesSummary + runInformation + classifierModel;
+        String summary = Summary.GeneratesSummary();
+        return instancesSummary + runInformation + classifierModel + summary;
     }
 }

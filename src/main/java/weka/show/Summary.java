@@ -15,24 +15,15 @@ import weka.core.Utils;
  **/
 public class Summary {
 
-    static StringBuffer outBuff = new StringBuffer();
 
     public static String GeneratesSummary() {
-        return null;
+        try {
+            return GeneralClassification.runProcess();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
-    public static void printPredictionsHeader(
-            AbstractOutput classificationOutput, String title) {
-        if (classificationOutput.generatesOutput()) {
-            outBuff.append("=== Predictions on " + title + " ===\n\n");
-        }
-        classificationOutput.printHeader();
-
-        if (GeneralClassification.isOutputPredictionsText()
-                && classificationOutput.generatesOutput()) {
-            outBuff.append("\n");
-        }
-        outBuff.append("=== Evaluation on training set ===\n");
-    }
 
 }
