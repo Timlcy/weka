@@ -1,6 +1,8 @@
 package weka;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import weka.algorithm.GeneralClassification;
 import weka.classifiers.*;
 import weka.classifiers.evaluation.output.prediction.AbstractOutput;
 import weka.classifiers.rules.ZeroR;
@@ -32,8 +34,7 @@ import java.util.Random;
  * @Version 1.0
  **/
 public class WekaTest {
-
-    private static Logger log = Logger.getLogger(WekaTest.class.getClass());
+    static final Logger log = LoggerFactory.getLogger(WekaTest.class);
 
     Instances inst = null;//数据集
     StringBuffer outBuff = new StringBuffer();

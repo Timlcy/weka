@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import weka.classifiers.*;
 import weka.classifiers.evaluation.output.prediction.AbstractOutput;
 import weka.classifiers.rules.ZeroR;
@@ -21,6 +22,8 @@ import weka.gui.explorer.ExplorerDefaults;
 import weka.initData.GeneralData;
 
 import javax.swing.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Random;
 
@@ -38,7 +41,7 @@ public class GeneralClassification {
 
     static final Logger LOGGER = LoggerFactory.getLogger(GeneralClassification.class);
 
-    //分类器模式选择
+    // 1:分层交叉校验 2:按比例拆分 3:使用训练集 4.选择测试集
     static int testMode = 1;
     //分层交叉校验值
     static int crossValidationText = 10;
@@ -66,8 +69,6 @@ public class GeneralClassification {
     static String randomSeedText = "1";
 
     static Instances userTestStructure;
-
-    static ConverterUtils.DataSource source;
 
     //是否输出预测文本
     static boolean outputPredictionsText = false;
@@ -158,6 +159,63 @@ public class GeneralClassification {
         }
     }
 
+    @ApiOperation(value = "设置使用训练集")
+    @PostMapping("setUseTrainingSet")
+    public void setUseTrainingSet() {
+        setTestMode(3);
+    }
+
+    @ApiOperation(value = "设置使用测试集")
+    @PostMapping(value = "setUseTestSet", headers = "content-type=multipart/form-data", consumes =
+            "multipart/*")
+    public void setUseTestSet(@RequestParam("file") MultipartFile file) {
+        if (!file.isEmpty()) {
+            try {
+                InputStream is = file.getInputStream();
+                Instances read = ConverterUtils.DataSource.read(is);
+                read.setClassIndex(read.numAttributes() - 1);
+                ConverterUtils.DataSource dataSource = new ConverterUtils.DataSource(read);
+                GeneralData.setSource(dataSource);
+                setTestMode(4);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+    }
+
+    @ApiOperation(value = "设置分层交叉校验值")
+    @PostMapping("setCrossValidationValue")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "crossValidationValue", value = "分层交叉校验值", required =
+                    true, paramType = "query", dataType = "int",
+                    defaultValue = "10"
+            )
+    })
+    public void setCrossValidationValue(@RequestParam(value = "crossValidationValue", required =
+            false, defaultValue = "10") int crossValidationValue) {
+        setCrossValidationText(crossValidationValue);
+        setTestMode(1);
+    }
+
+    @ApiOperation(value = "设置训练集占比值")
+    @PostMapping("setTrainSetRatio")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "trainSetRatio", value = "训练集占比值", required =
+                    true, paramType = "query", dataType = "double",
+                    defaultValue = "66"
+            )
+    })
+    public void setTrainSetRatio(@RequestParam(value = "crossValidationValue", required =
+            false, defaultValue = "10") double crossValidationValue) {
+        setPercent(crossValidationValue);
+        setTestMode(2);
+    }
+
+
     public static long runClassification() {
         long trainTimeStart = 0, trainTimeElapsed = 0;
         if (outputModel || (testMode == 3) || (testMode == 4)) {
@@ -243,9 +301,8 @@ public class GeneralClassification {
         LOGGER.info("Evaluating on test data...");
         eval = new Evaluation(inst, costMatrix);
         // make adjustments if the classifier is an InputMappedClassifier
-        eval =
-                setupEval(eval, classifier, inst, costMatrix, plotInstances,
-                        classificationOutput, false, collectPredictionsForEvaluation);
+        eval = setupEval(eval, classifier, inst, costMatrix, plotInstances,
+                classificationOutput, false, collectPredictionsForEvaluation);
         plotInstances.setInstances(userTestStructure);
         eval.setMetricsToDisplay(selectedEvalMetrics);
 
@@ -283,6 +340,7 @@ public class GeneralClassification {
             LOGGER.info("Performing batch prediction with batch size " + batchSize);
         }
         testTimeStart = System.currentTimeMillis();
+        ConverterUtils.DataSource source = GeneralData.getSource();
         while (source.hasMoreElements(userTestStructure)) {
             instance = source.nextElement(userTestStructure);
 
@@ -460,6 +518,7 @@ public class GeneralClassification {
         long testTimeStart = 0, testTimeElapsed = 0;
         Instances inst = GeneralData.getInstances();
         eval = new Evaluation(inst, costMatrix);
+        //设置输出指标
         eval.setMetricsToDisplay(selectedEvalMetrics);
 
         if (outputPredictionsText) {

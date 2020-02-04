@@ -27,12 +27,8 @@ import java.io.InputStream;
 @Api(value = "文件接口Controller")
 public class FileData extends GeneralData {
     @ApiOperation(value = "文件导入")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "file", value = "文件", required =
-                    true, paramType = "query", dataType = "MultipartFile"
-            )
-    })
-    @PostMapping("fileImport")
+    @PostMapping(value = "fileImport", headers = "content-type=multipart/form-data", consumes =
+            "multipart/*")
     public boolean fileImport(@RequestParam("file") MultipartFile file
     ) {
         if (!file.isEmpty()) {

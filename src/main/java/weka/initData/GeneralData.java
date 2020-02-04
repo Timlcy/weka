@@ -13,7 +13,7 @@ import weka.core.converters.ConverterUtils;
 public class GeneralData {
 
     public static Instances instances;
-
+    //测试集或者其他文件
     public static ConverterUtils.DataSource source;
 
     public static ConverterUtils.DataSource getSource() {
