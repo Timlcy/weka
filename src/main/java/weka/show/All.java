@@ -1,8 +1,6 @@
 package weka.show;
 
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,10 +22,15 @@ public class All {
     @ApiOperation(value = "输出全部数据接口")
     @PostMapping("showAll")
     public String showAll() {
+        StringBuffer sb = new StringBuffer();
         String instancesSummary = InstancesSummary.GeneratesInstancesSummary();
         String runInformation = RunInformation.GeneratesRunInformation();
         String classifierModel = ClassifierModel.GeneratesClassifierModel();
         String summary = Summary.GeneratesSummary();
-        return instancesSummary + runInformation + classifierModel + summary;
+        sb.append(instancesSummary);
+        sb.append(runInformation);
+        sb.append(classifierModel);
+        sb.append(summary);
+        return sb.toString();
     }
 }

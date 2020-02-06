@@ -24,8 +24,8 @@ import weka.initData.GeneralData;
 import javax.swing.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName GeneralClassification
@@ -45,6 +45,8 @@ public class GeneralClassification {
     static int testMode = 1;
     //分层交叉校验值
     static int crossValidationText = 10;
+
+
     //输出算法模型
     static boolean outputModel = true;
     //百分比
@@ -85,6 +87,21 @@ public class GeneralClassification {
     //默认选择ZeroR分类算法
     static AbstractClassifier classifier = new ZeroR();
 
+    public static List<String> getSelectedEvalMetrics() {
+        return selectedEvalMetrics;
+    }
+
+    public static void setSelectedEvalMetrics(List<String> selectedEvalMetrics) {
+        GeneralClassification.selectedEvalMetrics = selectedEvalMetrics;
+    }
+
+    public static boolean isOutputModel() {
+        return outputModel;
+    }
+
+    public static void setOutputModel(boolean outputModel) {
+        GeneralClassification.outputModel = outputModel;
+    }
 
     public static boolean isOutputPredictionsText() {
         return outputPredictionsText;
@@ -216,6 +233,53 @@ public class GeneralClassification {
     }
 
 
+    @ApiOperation(value = "设置分类属性")
+    @PostMapping("setClassAttributes")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "classAttributes", value = "分类属性", required =
+                    true, paramType = "query", dataType = "int",
+                    defaultValue = "1"
+            )
+    })
+    public void setClassAttributes(@RequestParam(value = "classAttributes", required =
+            true) int classAttributes) {
+        GeneralData.getInstances().setClassIndex(classAttributes);
+    }
+
+    @ApiOperation(value = "获得分类属性")
+    @PostMapping("getClassAttributes")
+    public Map getClassAttributes() {
+        Map<String, Integer> map = new HashMap<>();
+        Instances inst = GeneralData.getInstances();
+        for (int i = 0; i < inst.numAttributes(); i++) {
+            Attribute attribute = inst.attribute(i);
+            map.put(attribute.name(), attribute.index());
+        }
+        Map result = map.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (oldValue, newValue) -> oldValue, LinkedHashMap::new));
+        return result;
+    }
+
+    @ApiOperation(value = "获得评估指标")
+    @PostMapping("getEvaluationMetrics")
+    public List getEvaluationMetrics() {
+        return  getSelectedEvalMetrics();
+    }
+
+
+    @ApiOperation(value = "设置评估指标")
+    @PostMapping("setEvaluationMetrics")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "evaluationMetrics", value = "评估指标参数", required =
+                    true, paramType = "query", dataType = "String", allowMultiple = true
+                    , defaultValue = "Correct")
+    })
+    public void setEvaluationMetrics(@RequestParam(value = "evaluationMetrics", required = true) List evaluationMetrics) {
+        setSelectedEvalMetrics(evaluationMetrics);
+    }
+
     public static long runClassification() {
         long trainTimeStart = 0, trainTimeElapsed = 0;
         if (outputModel || (testMode == 3) || (testMode == 4)) {
@@ -234,6 +298,15 @@ public class GeneralClassification {
 
     public static String runProcess() throws Exception {
         StringBuffer outBuff = new StringBuffer();
+        Instances inst = GeneralData.getInstances();
+//        plotInstances
+//                .setInstances(testMode == 4 ? userTestStructure : inst);
+//        plotInstances.setClassifier(classifier);
+//        plotInstances.setClassIndex(inst.classIndex());
+//        plotInstances.setSaveForVisualization(saveVis);
+//        plotInstances
+//                .setPointSizeProportionalToMargin(m_errorPlotPointSizeProportionalToMargin
+//                        .isSelected());
         template = AbstractClassifier.makeCopy(classifier);
         long testTimeElapsed = 0L;
         switch (testMode) {
@@ -273,14 +346,16 @@ public class GeneralClassification {
             outBuff.append(eval.toSummaryString(outputEntropy) + "\n");
         }
 
-        if (GeneralData.getInstances().attribute(classIndex).isNominal()) {
+        if (inst.attribute(classIndex).isNominal()) {
 
             if (outputPerClass) {
-                outBuff.append(eval.toClassDetailsString() + "\n");//Detailed Accuracy By Class
+                //Detailed Accuracy By Class
+                outBuff.append(eval.toClassDetailsString() + "\n");
             }
 
             if (outputConfusion) {
-                outBuff.append(eval.toMatrixString() + "\n");//Confusion Matrix
+                //Confusion Matrix
+                outBuff.append(eval.toMatrixString() + "\n");
             }
         }
         if ((fullClassifier instanceof Sourcable)
@@ -517,7 +592,12 @@ public class GeneralClassification {
         LOGGER.info("Evaluating on training data...");
         long testTimeStart = 0, testTimeElapsed = 0;
         Instances inst = GeneralData.getInstances();
-        eval = new Evaluation(inst, costMatrix);
+
+        // make adjustments if the classifier is an InputMappedClassifier
+        eval =
+                setupEval(eval, classifier, inst, costMatrix, plotInstances,
+                        classificationOutput, false, collectPredictionsForEvaluation);
+
         //设置输出指标
         eval.setMetricsToDisplay(selectedEvalMetrics);
 
@@ -598,9 +678,9 @@ public class GeneralClassification {
         // plotInstances.setEvaluation(eval);
         plotInstances.setUp();
 
-//        if (outputPredictionsText) {
-//            printPredictionsHeader(outBuff, classificationOutput, "test data");
-//        }
+        if (outputPredictionsText) {
+            printPredictionsHeader(classificationOutput, "test data", outBuff);
+        }
 
         // Make some splits and do a CV
         for (int fold = 0; fold < crossValidationText; fold++) {
@@ -614,7 +694,6 @@ public class GeneralClassification {
                     classificationOutput, true, collectPredictionsForEvaluation);
             eval.setMetricsToDisplay(selectedEvalMetrics);
 
-            // eval.setPriors(train);
             LOGGER.info("Building model for fold " + (fold + 1)
                     + "...");
             Classifier current = null;
