@@ -12,7 +12,9 @@ import weka.gui.explorer.ExplorerDefaults;
 import weka.initData.GeneralData;
 
 import javax.swing.*;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 /**
  * @ClassName Cluster
@@ -25,11 +27,11 @@ public class TestCluster {
 
     static Logger LOGGER = LoggerFactory.getLogger(TestCluster.class);
 
-    static JList ignoreKeyList = null;
+    static List<Integer> ignoreKeyList = null;
     static Clusterer clusterer = null;
     static int[] ignoredAtts = null;
-    static JRadioButton classesToClustersBut = null;
-    static JComboBox classCombo = null;
+    static boolean classesToClustersBut = false;
+    static int classCombo;
     static int testMode = 0;
     static int percent = 66;
     static long trainTimeStart = 0, trainTimeElapsed = 0;
@@ -60,14 +62,14 @@ public class TestCluster {
             for (int i = 0; i < inst.numAttributes(); i++) {
                 selected[i] = true;
             }
-            if (!ignoreKeyList.isSelectionEmpty()) {
-                int[] indices = ignoreKeyList.getSelectedIndices();
+            if (!ignoreKeyList.isEmpty()) {
+                int[] indices = ignoreKeyList.stream().mapToInt(Integer::valueOf).toArray();
                 for (int i = 0; i < indices.length; i++) {
                     selected[indices[i]] = false;
                 }
             }
-            if (classesToClustersBut.isSelected()) {
-                selected[classCombo.getSelectedIndex()] = false;
+            if (classesToClustersBut) {
+                selected[classCombo] = false;
             }
             for (int i = 0; i < inst.numAttributes(); i++) {
                 if (selected[i]) {
@@ -75,8 +77,8 @@ public class TestCluster {
                             + '\n');
                 }
             }
-            if (!ignoreKeyList.isSelectionEmpty()
-                    || classesToClustersBut.isSelected()) {
+            if (!ignoreKeyList.isEmpty()
+                    || classesToClustersBut) {
                 outBuff.append("Ignored:\n");
                 for (int i = 0; i < inst.numAttributes(); i++) {
                     if (!selected[i]) {
@@ -89,21 +91,21 @@ public class TestCluster {
             outBuff.append("              [list of attributes omitted]\n");
         }
 
-        if (!ignoreKeyList.isSelectionEmpty()) {
-            ignoredAtts = ignoreKeyList.getSelectedIndices();
+        if (!ignoreKeyList.isEmpty()) {
+            ignoredAtts = ignoreKeyList.stream().mapToInt(Integer::valueOf).toArray();
         }
 
-        if (classesToClustersBut.isSelected()) {
+        if (classesToClustersBut) {
             // add class to ignored list
             if (ignoredAtts == null) {
                 ignoredAtts = new int[1];
-                ignoredAtts[0] = classCombo.getSelectedIndex();
+                ignoredAtts[0] = classCombo;
             } else {
                 int[] newIgnoredAtts = new int[ignoredAtts.length + 1];
                 System.arraycopy(ignoredAtts, 0, newIgnoredAtts, 0,
                         ignoredAtts.length);
                 newIgnoredAtts[ignoredAtts.length] =
-                        classCombo.getSelectedIndex();
+                        classCombo;
                 ignoredAtts = newIgnoredAtts;
             }
         }
@@ -135,16 +137,16 @@ public class TestCluster {
         clusterer.buildClusterer(removeClass(trainInst));
         trainTimeElapsed = System.currentTimeMillis() - trainTimeStart;
 
-        // if (testMode == 2) {
-        outBuff
-                .append("\n=== Clustering model (full training set) ===\n\n");
+        if (testMode == 2) {
+            outBuff
+                    .append("\n=== Clustering model (full training set) ===\n\n");
 
-        outBuff.append(clusterer.toString() + '\n');
-        outBuff
-                .append("\nTime taken to build model (full training data) : "
-                        + Utils.doubleToString(trainTimeElapsed / 1000.0, 2)
-                        + " seconds\n\n");
-        // }
+            outBuff.append(clusterer.toString() + '\n');
+            outBuff
+                    .append("\nTime taken to build model (full training data) : "
+                            + Utils.doubleToString(trainTimeElapsed / 1000.0, 2)
+                            + " seconds\n\n");
+        }
 //        if (clusterer instanceof Drawable) {
 //            try {
 //                grph = ((Drawable) clusterer).graph();
@@ -196,7 +198,7 @@ public class TestCluster {
             case 4: // Test on user split
                 LOGGER.info("Evaluating on test data...");
                 Instances userTestT = new Instances(userTest);
-                if (!ignoreKeyList.isSelectionEmpty()) {
+                if (!ignoreKeyList.isEmpty()) {
                     userTestT = removeIgnoreCols(userTestT);
                 }
                 eval.evaluateClusterer(userTestT, "", false);
@@ -236,13 +238,13 @@ public class TestCluster {
         // If the user is doing classes to clusters evaluation and
         // they have opted to ignore the class, then unselect the class in
         // the ignore list
-        if (classesToClustersBut.isSelected()) {
-            int classIndex = classCombo.getSelectedIndex();
-            if (ignoreKeyList.isSelectedIndex(classIndex)) {
-                ignoreKeyList.removeSelectionInterval(classIndex, classIndex);
+        if (classesToClustersBut) {
+            int classIndex = classCombo;
+            if (ignoreKeyList.contains(classIndex)) {
+                ignoreKeyList.remove(classIndex);
             }
         }
-        int[] selected = ignoreKeyList.getSelectedIndices();
+        int[] selected = ignoreKeyList.stream().mapToInt(Integer::valueOf).toArray();
         Remove af = new Remove();
         Instances retI = null;
 

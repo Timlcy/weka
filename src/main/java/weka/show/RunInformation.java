@@ -1,7 +1,9 @@
 package weka.show;
 
 import weka.algorithm.GeneralClassification;
+import weka.algorithm.GeneralCluster;
 import weka.classifiers.AbstractClassifier;
+import weka.clusterers.AbstractClusterer;
 import weka.core.Instances;
 import weka.core.Utils;
 import weka.initData.GeneralData;
@@ -15,7 +17,7 @@ import weka.initData.GeneralData;
  **/
 public class RunInformation {
 
-    public static String GeneratesRunInformation() {
+    public static String classifierRunInformation() {
         AbstractClassifier classifier = GeneralClassification.getClassifier();
         Instances inst = GeneralData.getInstances();
         StringBuffer outBuff = new StringBuffer();
@@ -64,4 +66,12 @@ public class RunInformation {
         }
         return outBuff.toString();
     }
+
+    public static String clustererRunInformation() {
+        AbstractClusterer cluster = GeneralCluster.getCluster();
+
+
+        return null;
+    }
+
 }

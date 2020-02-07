@@ -24,7 +24,7 @@ public class All {
     public String showAll() {
         StringBuffer sb = new StringBuffer();
         String instancesSummary = InstancesSummary.GeneratesInstancesSummary();
-        String runInformation = RunInformation.GeneratesRunInformation();
+        String runInformation = RunInformation.classifierRunInformation();
         String classifierModel = ClassifierModel.GeneratesClassifierModel();
         String summary = Summary.GeneratesSummary();
         sb.append(instancesSummary);

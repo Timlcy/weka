@@ -149,7 +149,7 @@ public class GeneralClassification {
      *
      * @param options
      */
-    @ApiOperation(value = "算法选择接口")
+    @ApiOperation(value = "分类算法选择接口")
     @PostMapping("classificationSelection")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "options", value = "分类参数", required =
@@ -167,13 +167,21 @@ public class GeneralClassification {
             @RequestParam(value = "classifierName", required = true) String classifierName
     ) {
         try {
-            classifier = (AbstractClassifier) Class.forName(classifierName).newInstance();
-            classifier.setOptions(options);
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            e.printStackTrace();
+            GeneralClassification.classifier =
+                    (AbstractClassifier) AbstractClassifier.forName(classifierName, options);
         } catch (Exception e) {
             e.printStackTrace();
         }
+//
+//        try {
+//            GeneralClassification.classifier = (AbstractClassifier) Class.forName
+//            (classifierName).newInstance();
+//            GeneralClassification.classifier.setOptions(options);
+//        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     @ApiOperation(value = "设置使用训练集")
@@ -265,7 +273,7 @@ public class GeneralClassification {
     @ApiOperation(value = "获得评估指标")
     @PostMapping("getEvaluationMetrics")
     public List getEvaluationMetrics() {
-        return  getSelectedEvalMetrics();
+        return getSelectedEvalMetrics();
     }
 
 
