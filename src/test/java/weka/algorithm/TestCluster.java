@@ -32,7 +32,7 @@ public class TestCluster {
     static int[] ignoredAtts = null;
     static boolean classesToClustersBut = false;
     static int classCombo;
-    static int testMode = 0;
+    static int testMode =3;
     static int percent = 66;
     static long trainTimeStart = 0, trainTimeElapsed = 0;
     static Instances userTest = null;
@@ -147,15 +147,6 @@ public class TestCluster {
                             + Utils.doubleToString(trainTimeElapsed / 1000.0, 2)
                             + " seconds\n\n");
         }
-//        if (clusterer instanceof Drawable) {
-//            try {
-//                grph = ((Drawable) clusterer).graph();
-//            } catch (Exception ex) {
-//            }
-//        }
-//        // copy full model for output
-//        SerializedObject so = new SerializedObject(clusterer);
-//        fullClusterer = (Clusterer) so.getObject();
 
         ClusterEvaluation eval = new ClusterEvaluation();
         eval.setClusterer(clusterer);
@@ -166,8 +157,7 @@ public class TestCluster {
                 eval.evaluateClusterer(trainInst, "", false);
                 plotInstances.setInstances(inst);
                 plotInstances.setClusterEvaluation(eval);
-                outBuff
-                        .append("=== Model and evaluation on training set ===\n\n");
+                outBuff.append("=== Model and evaluation on training set ===\n\n");
                 break;
 
             case 2: // Percent split
@@ -189,10 +179,9 @@ public class TestCluster {
                 plotInstances.setClusterEvaluation(eval);
                 outBuff.append("=== Model and evaluation on test split ===\n");
                 outBuff.append(clusterer.toString() + "\n");
-                outBuff
-                        .append("\nTime taken to build model (percentage split) : "
-                                + Utils.doubleToString(trainTimeElapsed / 1000.0, 2)
-                                + " seconds\n\n");
+                outBuff.append("\nTime taken to build model (percentage split) : "
+                        + Utils.doubleToString(trainTimeElapsed / 1000.0, 2)
+                        + " seconds\n\n");
                 break;
 
             case 4: // Test on user split

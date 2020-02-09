@@ -46,7 +46,6 @@ public class GeneralClassification {
     //分层交叉校验值
     static int crossValidationText = 10;
 
-
     //输出算法模型
     static boolean outputModel = true;
     //百分比
@@ -172,16 +171,6 @@ public class GeneralClassification {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//
-//        try {
-//            GeneralClassification.classifier = (AbstractClassifier) Class.forName
-//            (classifierName).newInstance();
-//            GeneralClassification.classifier.setOptions(options);
-//        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
     }
 
     @ApiOperation(value = "设置使用训练集")
